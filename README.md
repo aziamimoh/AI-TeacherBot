@@ -1,6 +1,6 @@
-# AI-Teacherbot
+# AI-TeacherBot
 
-AI-Teacher is a Java program that aims to help students study more 
+AI-TeacherBot is a Java program that aims to help students study more 
 efficiently by quizzing them on concepts from material they provide 
 to the program.
 
