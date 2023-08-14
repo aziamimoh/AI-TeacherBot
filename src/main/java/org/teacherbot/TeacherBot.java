@@ -4,13 +4,8 @@ import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -182,7 +177,8 @@ public class TeacherBot {
                 matchedSentences = matchedSentences.substring(0, 2048);
             }
             query = query + "The reference note is as follows: " + matchedSentences + ".";
-            String response = sendQueryToOpenAI(query);
+            OpenAI openAI = new OpenAI();
+            String response = openAI.sendQueryToOpenAI(query);
 
             // Process the response from OpenAI
             // Handle the results according to your application's needs
@@ -190,89 +186,8 @@ public class TeacherBot {
             System.out.println(response);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-    }
-
-    private static String sendQueryToOpenAI(String query) {
-
-        String response = "";
-
-        ///////
-        String apiKey = System.getenv("OPENAI_TOKEN");
-        if (apiKey == null || apiKey.isEmpty()) {
-            System.err.println("API key not found in environment variable OPENAI_API_KEY");
-            return response;
-        }
-        String endpointUrl = "https://api.openai.com/v1/chat/completions";
-
-        String requestBody = "{\n" +
-                "    \"model\": \"gpt-3.5-turbo-16k-0613\",\n" +
-                "    \"messages\": [\n" +
-                "        {\n" +
-                "            \"role\": \"system\",\n" +
-                "            \"content\": \"You are a sympathetic teacher.\"\n" +
-                "        },\n" +
-                "        {\n" +
-                "            \"role\": \"user\",\n" +
-                "            \"content\": \"" + query + "\"\n" +
-                "        }\n" +
-                "    ]\n" +
-                "}";
-
-        try {
-            response = sendPostRequest(apiKey, endpointUrl, requestBody);
-            JSONParser parser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) parser.parse(response);
-
-            // Extract the "id" from the response
-            String id = (String) jsonObject.get("id");
-            //System.out.println("ID: " + id);
-
-            JSONArray choicesArray = (JSONArray) jsonObject.get("choices");
-            String responseText = "";
-            for (int i = 0; i < choicesArray.size(); i++) {
-                JSONObject choiceObject = (JSONObject) choicesArray.get(i);
-                HashMap<String, JSONObject> message = (HashMap<String, JSONObject>) choiceObject.get("message");
-                responseText = String.valueOf(message.get("content"));
-            }
-
-            //System.out.println("Response: " + response);
-            //System.out.println("Response: " + responseText);
-            response = responseText;
-        } catch (Exception e) {
+        } catch (URISyntaxException e) {
             e.printStackTrace();
-        }
-
-        return response;
-    }
-
-
-    public static String sendPostRequest(String apiKey, String endpointUrl, String requestBody) throws IOException, URISyntaxException {
-        URI uri = new URI(endpointUrl);
-        HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("Authorization", "Bearer " + apiKey);
-        connection.setDoOutput(true);
-
-        try (OutputStream outputStream = connection.getOutputStream()) {
-            byte[] requestBodyBytes = requestBody.getBytes();
-            outputStream.write(requestBodyBytes);
-        }
-
-        int responseCode = connection.getResponseCode();
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-                StringBuilder responseBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    responseBuilder.append(line);
-                }
-                return responseBuilder.toString();
-            }
-        } else {
-            throw new IOException("Request failed with response code: " + responseCode);
         }
     }
 }
