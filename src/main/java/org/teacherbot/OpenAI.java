@@ -14,22 +14,18 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 
 public class OpenAI {
+    final String endpointUrl = "https://api.openai.com/v1/chat/completions";
+    String apiKey;
 
-    public void OpenAI() {
-
+    public OpenAI() throws Exception {
+        apiKey = System.getenv("OPENAI_TOKEN");
+        if (apiKey == null || apiKey.isEmpty()) {
+            throw new Exception("API key not found in environment variable OPENAI_API_KEY");
+        }
     }
 
     public String sendQueryToOpenAI(String query) {
-
         String response = "";
-
-        ///////
-        String apiKey = System.getenv("OPENAI_TOKEN");
-        if (apiKey == null || apiKey.isEmpty()) {
-            System.err.println("API key not found in environment variable OPENAI_API_KEY");
-            return response;
-        }
-        String endpointUrl = "https://api.openai.com/v1/chat/completions";
 
         String requestBody = "{\n" +
                 "    \"model\": \"gpt-3.5-turbo-16k-0613\",\n" +
@@ -46,7 +42,7 @@ public class OpenAI {
                 "}";
 
         try {
-            response = sendPostRequest(apiKey, endpointUrl, requestBody);
+            response = sendPostRequest(requestBody);
             JSONParser parser = new JSONParser();
             JSONObject jsonObject = (JSONObject) parser.parse(response);
 
@@ -72,7 +68,7 @@ public class OpenAI {
         return response;
     }
 
-    public String sendPostRequest(String apiKey, String endpointUrl, String requestBody) throws IOException, URISyntaxException {
+    public String sendPostRequest(String requestBody) throws IOException, URISyntaxException {
         URI uri = new URI(endpointUrl);
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
         connection.setRequestMethod("POST");

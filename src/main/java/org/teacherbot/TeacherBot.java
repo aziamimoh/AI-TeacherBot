@@ -61,6 +61,7 @@ public class TeacherBot {
     }
 
     public static void main(String[] args) throws Exception {
+        OpenAI openAI = new OpenAI();
         // 1 - Ask user for a filename with text
         Scanner scanner = new Scanner(System.in);
         String defaultFileName = "input.txt";
@@ -177,7 +178,6 @@ public class TeacherBot {
                 matchedSentences = matchedSentences.substring(0, 2048);
             }
             query = query + "The reference note is as follows: " + matchedSentences + ".";
-            OpenAI openAI = new OpenAI();
             String response = openAI.sendQueryToOpenAI(query);
 
             // Process the response from OpenAI
